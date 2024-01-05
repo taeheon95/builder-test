@@ -1,6 +1,8 @@
-package org.example;
+package org.example.notification;
 
-import java.util.List;
+import org.example.common.RequestResult;
+
+import java.util.Optional;
 
 public class Notification {
     private final String recipient;
@@ -22,9 +24,9 @@ public class Notification {
         private final String title;
         private final String content;
         private int retry = 0;
-        private NotificationSender notificationSender = NotificationSender.getInstance();
-        private RequestSuccessHandler requestSuccessHandler;
-        private RequestErrorHandler requestErrorHandler;
+        private Optional<NotificationSender> notificationSender = Optional.ofNullable(null);
+        private Optional<RequestSuccessHandler> requestSuccessHandler = Optional.ofNullable(null);
+        private Optional<RequestErrorHandler> requestErrorHandler = Optional.ofNullable(null);
 
         public Builder(String recipient, String title, String content) {
             this.recipient = recipient;
@@ -38,33 +40,33 @@ public class Notification {
         }
 
         public Builder requestSuccessHandler(RequestSuccessHandler successHandler) {
-            this.requestSuccessHandler = successHandler;
+            this.requestSuccessHandler = Optional.ofNullable(successHandler);
             return this;
         }
 
         public Builder requestErrorHandler(RequestErrorHandler requestErrorHandler) {
-            this.requestErrorHandler = requestErrorHandler;
+            this.requestErrorHandler = Optional.ofNullable(requestErrorHandler);
             return this;
         }
 
         public Builder notificationSender(NotificationSender notificationSender) {
-            this.notificationSender = notificationSender;
+            this.notificationSender = Optional.ofNullable(notificationSender);
             return this;
         }
 
         public RequestResult send() {
             Notification notification = new Notification(this);
             try {
-                RequestResult requestResult = notificationSender.sendNotification(notification);
-                if (requestSuccessHandler != null) {
-                    requestSuccessHandler.handleSuccess(requestResult);
-                }
+                RequestResult requestResult = notificationSender
+                        .orElseGet(NotificationSender::getInstance)
+                        .sendNotification(notification);
+                requestSuccessHandler
+                        .ifPresent(successHandler -> successHandler.handleSuccess(requestResult));
                 return requestResult;
             } catch (Exception e) {
                 RequestResult failRequestResult = new RequestResult();
-                if (requestErrorHandler != null) {
-                    requestErrorHandler.handleError(failRequestResult);
-                }
+                requestErrorHandler
+                        .ifPresent(errorHandler->errorHandler.handleError(failRequestResult));
                 return failRequestResult;
             }
         }

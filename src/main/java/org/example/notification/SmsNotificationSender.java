@@ -1,6 +1,9 @@
-package org.example;
+package org.example.notification;
 
-public class SmsNotificationSender implements NotificationSender {
+import org.example.common.RequestResult;
+
+public class SmsNotificationSender extends NotificationSender {
+
     @Override
     public RequestResult sendNotification(Notification notification) {
         System.out.println("send sms noti");
