@@ -54,5 +54,14 @@ public class Main {
                 .and()
                 .myRememberMe();
         myHttpSecurity.build();
+
+        StringBuilder test = new StringBuilder("a");
+        test.replace(0, 1, "test")
+                .append("t")
+                .append("e")
+                .append("s")
+                .append("t")
+                .toString();
+
     }
 }
